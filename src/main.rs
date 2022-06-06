@@ -9,43 +9,34 @@ use piston::event_loop::{EventSettings, Events};
 use piston::input::{RenderArgs, RenderEvent, UpdateArgs, UpdateEvent};
 use piston::window::WindowSettings;
 
-const WIDTH: f64 = 3000.0;
-const HEIGHT: f64 = 2000.0;
+const WIDTH: f64 = 1000.0;
+const HEIGHT: f64 = 1000.0;
+
+const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+const ENGLISH_VERMILLION: [f32; 4] = [211.0/256.0, 62.0/256.0, 67.0/256.0, 1.0];
+const OLD_LAVENDER: [f32; 4] = [102.0/256.0, 99.0/256.0, 112.0/256.0, 1.0];
 
 pub struct App {
     gl: GlGraphics, // OpenGL drawing backend.
-    rotation: f64,  // Rotation for the square.
+    grid: graphics::grid::Grid,  // Grid
 }
 
 impl App {
     fn render(&mut self, args: &RenderArgs) {
         use graphics::*;
 
-        const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
-        const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
-
-        let square = rectangle::square(0.0, 0.0, 50.0);
-        let rotation = self.rotation;
-        let (x, y) = (args.window_size[0] / 2.0, args.window_size[1] / 2.0);
+        let line = line::Line::new(BLACK, 0.25);
 
         self.gl.draw(args.viewport(), |c, gl| {
             // Clear the screen.
-            clear(GREEN, gl);
+            clear(OLD_LAVENDER, gl);
 
-            let transform = c
-                .transform
-                .trans(x, y)
-                .rot_rad(rotation)
-                .trans(-25.0, -25.0);
-
-            // Draw a box rotating around the middle of the screen.
-            rectangle(RED, square, transform, gl);
+            self.grid.draw(&line, &c.draw_state, c.transform, gl);
         });
     }
 
-    fn update(&mut self, args: &UpdateArgs) {
-        // Rotate 2 radians per second.
-        self.rotation += 2.0 * args.dt;
+    fn update(&mut self, _args: &UpdateArgs) {
+        // TODO
     }
 }
 
@@ -63,7 +54,7 @@ fn main() {
     // Create a new game and run it.
     let mut app = App {
         gl: GlGraphics::new(opengl),
-        rotation: 0.0,
+        grid: graphics::grid::Grid{cols: 100, rows: 100, units: 10.0}
     };
 
     let mut events = Events::new(EventSettings::new());
