@@ -85,6 +85,11 @@ impl Agent {
     }
 }
 
+pub struct Food {
+    position: Position,
+    energy: f64,
+}
+
 pub struct App {
     gl: GlGraphics, // OpenGL drawing backend.
     grid: graphics::grid::Grid,  // Grid
