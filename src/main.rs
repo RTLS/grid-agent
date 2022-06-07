@@ -26,6 +26,8 @@ const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 const ENGLISH_VERMILLION: [f32; 4] = [211.0/256.0, 62.0/256.0, 67.0/256.0, 1.0];
 const OLD_LAVENDER: [f32; 4] = [102.0/256.0, 99.0/256.0, 112.0/256.0, 1.0];
 
+const AGENT_STEP_ENERGY_COST: f64 = 0.05;
+
 pub enum Direction {
     Up,
     Down,
@@ -61,6 +63,26 @@ impl Position {
 
 pub struct Agent {
     position: Position,
+    energy: f64,
+    alive: bool,
+}
+
+impl Agent {
+    fn new() -> Agent {
+        Agent{
+            position: Position{x: 50, y: 50},
+            energy: 1.0,
+            alive: true
+        }
+    }
+
+    fn should_die(&self) -> bool {
+        self.energy <= 0.0
+    }
+
+    fn die(&mut self) {
+        self.alive = false;
+    }
 }
 
 pub struct App {
@@ -94,7 +116,13 @@ impl App {
     }
 
     fn update(&mut self, _args: &UpdateArgs) {
-        self.step_agent();
+        if self.agent.alive {
+            self.step_agent();
+
+            if self.agent.should_die() {
+                self.agent.die();
+            }
+        }
     }
 
     fn step_agent(&mut self) {
@@ -103,6 +131,7 @@ impl App {
         let new_position = Position::increment(&self.agent.position, direction);
         if self.valid_position(&new_position) {
             self.agent.position = new_position;
+            self.agent.energy -= AGENT_STEP_ENERGY_COST;
         }
     }
 
@@ -132,7 +161,7 @@ fn main() {
     let mut app = App {
         gl: GlGraphics::new(opengl),
         grid: graphics::grid::Grid{cols: 100, rows: 100, units: 10.0},
-        agent: Agent{position: Position{x: 50, y: 50}}
+        agent: Agent::new(),
     };
 
     let mut event_settings = EventSettings::new();
