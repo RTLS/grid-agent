@@ -45,38 +45,22 @@ impl Distribution<Direction> for Standard {
 }
 
 pub struct Position {
-    x: u32, y: u32
+    x: i32, y: i32
+}
+
+impl Position {
+    fn increment(position: &Position, dir: Direction) -> Position {
+        match dir {
+            Direction::Up => { Position{x: position.x, y: position.y - 1} },
+            Direction::Down => { Position{x: position.x, y: position.y + 1} },
+            Direction::Left => { Position{x: position.x - 1, y: position.y} },
+            Direction::Right => { Position{x: position.x + 1, y: position.y} },
+        }
+    }
 }
 
 pub struct Agent {
     position: Position,
-}
-
-impl Agent {
-    fn step(&mut self, dir: Direction, grid: graphics::grid::Grid) {
-        match dir {
-            Direction::Up => {
-                if self.position.y != 0 {
-                    self.position.y -= 1;
-                }
-            },
-            Direction::Down => {
-                if self.position.y != grid.rows - 1 {
-                    self.position.y += 1;
-                }
-            },
-            Direction::Left => {
-                if self.position.x != 0 {
-                    self.position.x -= 1;
-                }
-            },
-            Direction::Right => {
-                if self.position.x != grid.cols - 1 {
-                    self.position.x += 1;
-                }
-            },
-        }
-    }
 }
 
 pub struct App {
@@ -110,9 +94,26 @@ impl App {
     }
 
     fn update(&mut self, _args: &UpdateArgs) {
+        self.step_agent();
+    }
+
+    fn step_agent(&mut self) {
         let mut rng = rand::thread_rng();
         let direction: Direction = rng.gen();
-        self.agent.step(direction, self.grid);
+        let new_position = Position::increment(&self.agent.position, direction);
+        if self.valid_position(&new_position) {
+            self.agent.position = new_position;
+        }
+    }
+
+    fn valid_position(&mut self, position: &Position) -> bool {
+        self.in_bounds(position)
+    }
+
+    fn in_bounds(&self, position: &Position) -> bool {
+        let rows = self.grid.rows as i32;
+        let cols = self.grid.cols as i32;
+        position.x >= 0 && position.y >= 0 && position.x < cols - 1 && position.y < rows - 1
     }
 }
 
