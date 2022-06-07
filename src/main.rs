@@ -19,6 +19,9 @@ use rand::{
 const WIDTH: f64 = 1000.0;
 const HEIGHT: f64 = 1000.0;
 
+const UPDATES_PER_SECOND: u64 = 16;
+const MAX_SPEED: bool = false;
+
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 const ENGLISH_VERMILLION: [f32; 4] = [211.0/256.0, 62.0/256.0, 67.0/256.0, 1.0];
 const OLD_LAVENDER: [f32; 4] = [102.0/256.0, 99.0/256.0, 112.0/256.0, 1.0];
@@ -131,7 +134,12 @@ fn main() {
         agent: Agent{position: Position{x: 50, y: 50}}
     };
 
-    let mut events = Events::new(EventSettings::new());
+    let mut event_settings = EventSettings::new();
+    event_settings.max_fps = UPDATES_PER_SECOND;
+    event_settings.ups = UPDATES_PER_SECOND;
+    event_settings.bench_mode = MAX_SPEED;
+    let mut events = Events::new(event_settings);
+
     while let Some(e) = events.next(&mut window) {
         if let Some(args) = e.render_args() {
             app.render(&args);
