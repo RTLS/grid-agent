@@ -16,22 +16,41 @@ const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 const ENGLISH_VERMILLION: [f32; 4] = [211.0/256.0, 62.0/256.0, 67.0/256.0, 1.0];
 const OLD_LAVENDER: [f32; 4] = [102.0/256.0, 99.0/256.0, 112.0/256.0, 1.0];
 
+pub struct Position {
+    x: u32, y: u32
+}
+
+pub struct Agent {
+    position: Position,
+}
+
 pub struct App {
     gl: GlGraphics, // OpenGL drawing backend.
     grid: graphics::grid::Grid,  // Grid
+    agent: Agent
 }
 
 impl App {
     fn render(&mut self, args: &RenderArgs) {
         use graphics::*;
 
+        // Grid
         let line = line::Line::new(BLACK, 0.25);
+
+        // Agent
+        let square = rectangle::square(0.0, 0.0, self.grid.units);
+        let x = self.agent.position.x as f64 * self.grid.units;
+        let y = self.agent.position.y as f64 * self.grid.units;
 
         self.gl.draw(args.viewport(), |c, gl| {
             // Clear the screen.
             clear(OLD_LAVENDER, gl);
 
+            // Grid
             self.grid.draw(&line, &c.draw_state, c.transform, gl);
+
+            //Agent
+            rectangle(ENGLISH_VERMILLION, square, c.transform.trans(x, y), gl);
         });
     }
 
@@ -54,7 +73,8 @@ fn main() {
     // Create a new game and run it.
     let mut app = App {
         gl: GlGraphics::new(opengl),
-        grid: graphics::grid::Grid{cols: 100, rows: 100, units: 10.0}
+        grid: graphics::grid::Grid{cols: 100, rows: 100, units: 10.0},
+        agent: Agent{position: Position{x: 50, y: 50}}
     };
 
     let mut events = Events::new(EventSettings::new());
