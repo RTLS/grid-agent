@@ -37,15 +37,23 @@ pub enum Direction {
     Down,
     Left,
     Right,
+    UpLeft,
+    UpRight,
+    DownLeft,
+    DownRight,
 }
 
 impl Distribution<Direction> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Direction {
-        match rng.gen_range(0..=3) {
+        match rng.gen_range(0..=7) {
             0 => Direction::Up,
             1 => Direction::Down,
             2 => Direction::Left,
-            _ => Direction::Right,
+            3 => Direction::Right,
+            4 => Direction::UpLeft,
+            5 => Direction::UpRight,
+            6 => Direction::DownLeft,
+            _ => Direction::DownRight,
         }
     }
 }
@@ -61,6 +69,10 @@ impl Position {
             Direction::Down => { Position{x: position.x, y: position.y + 1} },
             Direction::Left => { Position{x: position.x - 1, y: position.y} },
             Direction::Right => { Position{x: position.x + 1, y: position.y} },
+            Direction::UpLeft => { Position{x: position.x - 1, y: position.y - 1} },
+            Direction::UpRight => { Position{x: position.x + 1, y: position.y - 1} },
+            Direction::DownLeft => { Position{x: position.x - 1, y: position.y + 1} },
+            Direction::DownRight => { Position{x: position.x + 1, y: position.y + 1} },
         }
     }
 }
