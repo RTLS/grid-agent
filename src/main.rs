@@ -16,7 +16,7 @@ use rand::{
 };
 
 
-const WIDTH: f64 = 1500.0;
+const WIDTH: f64 = 1000.0;
 const HEIGHT: f64 = 1000.0;
 
 const UPDATES_PER_SECOND: u64 = 16;
@@ -28,7 +28,9 @@ const OLD_LAVENDER: [f32; 4] = [102.0/256.0, 99.0/256.0, 112.0/256.0, 1.0];
 const FERN_GREEN : [f32; 4] = [88.0/256.0, 129.0/256.0, 87.0/256.0, 1.0];
 
 const INITIAL_FOOD_COUNT: u32 = 5000;
-const AGENT_STEP_ENERGY_COST: f64 = 0.05;
+const AGENT_STEP_ENERGY_COST: u32 = 1;
+const AGENT_MAX_ENERGY: u32 = 100;
+const FOOD_ENERGY: u32 = 100;
 
 pub enum Direction {
     Up,
@@ -65,7 +67,7 @@ impl Position {
 
 pub struct Agent {
     position: Position,
-    energy: f64,
+    energy: u32,
     alive: bool,
 }
 
@@ -73,23 +75,27 @@ impl Agent {
     fn new() -> Agent {
         Agent{
             position: Position{x: 50, y: 50},
-            energy: 1.0,
+            energy: AGENT_MAX_ENERGY,
             alive: true
         }
     }
 
     fn should_die(&self) -> bool {
-        self.energy <= 0.0
+        self.energy <= 0
     }
 
     fn die(&mut self) {
         self.alive = false;
     }
+
+    fn eat_food(&mut self, food: &Food) {
+       self.energy = std::cmp::min(AGENT_MAX_ENERGY, self.energy + food.energy); 
+    }
 }
 
 pub struct Food {
     position: Position,
-    energy: f64,
+    energy: u32,
 }
 
 impl Food {
@@ -98,7 +104,7 @@ impl Food {
         let x = rng.gen_range(0..grid.cols) as i32;
         let y = rng.gen_range(0..grid.rows) as i32;
 
-        Food{position: Position{x, y}, energy: 1.0}
+        Food{position: Position{x, y}, energy: FOOD_ENERGY}
     }
 }
 
@@ -161,13 +167,21 @@ impl App {
         if self.valid_position(&new_position) {
             self.agent.position = new_position;
             self.agent.energy -= AGENT_STEP_ENERGY_COST;
+        } else if self.food_at_position(&new_position) {
+            let index = self.food.iter()
+                .position(|f| f.position.x == new_position.x && f.position.y == new_position.y)
+                .unwrap();
+
+            let food = self.food.swap_remove(index);
+            self.agent.eat_food(&food);
+            self.agent.position = new_position;
         }
     }
 
     fn valid_position(&mut self, position: &Position) -> bool {
         let in_bounds = self.in_bounds(position);
         let agent_position = position.x == self.agent.position.x && position.y == self.agent.position.y;
-        let food_at_position = self.food.iter().any(|f| f.position.x == position.x && f.position.y == position.y);
+        let food_at_position = self.food_at_position(position);
 
         in_bounds && !agent_position && !food_at_position
     }
@@ -176,6 +190,10 @@ impl App {
         let rows = self.grid.rows as i32;
         let cols = self.grid.cols as i32;
         position.x >= 0 && position.y >= 0 && position.x < cols - 1 && position.y < rows - 1
+    }
+
+    fn food_at_position(&self, position: &Position) -> bool {
+        self.food.iter().any(|f| f.position.x == position.x && f.position.y == position.y)
     }
 
     fn generate_initial_food(&mut self) {
