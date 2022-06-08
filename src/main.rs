@@ -132,7 +132,7 @@ impl App {
         use graphics::*;
 
         // Grid
-        let line = line::Line::new(BLACK, 0.25);
+        let line = line::Line::new(BLACK, 0.0);
 
         // Agent
         let square = rectangle::square(0.0, 0.0, self.grid.units);
@@ -236,7 +236,7 @@ fn main() {
     // Create a new game and run it.
     let mut app = App {
         gl: GlGraphics::new(opengl),
-        grid: graphics::grid::Grid{cols: 100, rows: 100, units: 10.0},
+        grid: graphics::grid::Grid{cols: 128, rows: 128, units: 8.0},
         agent: Agent::new(),
         food: Vec::new(),
     };
