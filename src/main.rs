@@ -201,7 +201,7 @@ impl App {
     fn in_bounds(&self, position: &Position) -> bool {
         let rows = self.grid.rows as i32;
         let cols = self.grid.cols as i32;
-        position.x >= 0 && position.y >= 0 && position.x < cols - 1 && position.y < rows - 1
+        position.x >= 0 && position.y >= 0 && position.x < cols && position.y < rows
     }
 
     fn food_at_position(&self, position: &Position) -> bool {
