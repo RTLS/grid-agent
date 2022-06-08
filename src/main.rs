@@ -10,6 +10,7 @@ use piston::event_loop::{EventSettings, Events};
 use piston::input::{RenderArgs, RenderEvent, UpdateArgs, UpdateEvent};
 use piston::window::WindowSettings;
 use std::vec::Vec;
+use std::time::Instant;
 use rand::{
     distributions::{Distribution, Standard},
     Rng
@@ -27,7 +28,7 @@ const ENGLISH_VERMILLION: [f32; 4] = [211.0/256.0, 62.0/256.0, 67.0/256.0, 1.0];
 const OLD_LAVENDER: [f32; 4] = [102.0/256.0, 99.0/256.0, 112.0/256.0, 1.0];
 const FERN_GREEN : [f32; 4] = [88.0/256.0, 129.0/256.0, 87.0/256.0, 1.0];
 
-const INITIAL_FOOD_COUNT: u32 = 5000;
+const INITIAL_FOOD_COUNT: u32 = 10_000;
 const AGENT_STEP_ENERGY_COST: u32 = 1;
 const AGENT_MAX_ENERGY: u32 = 100;
 const FOOD_ENERGY: u32 = 100;
@@ -249,6 +250,8 @@ fn main() {
     event_settings.bench_mode = MAX_SPEED;
     let mut events = Events::new(event_settings);
 
+    let mut update_counts: u32 = 0;
+    let mut started_at = Instant::now();
     while let Some(e) = events.next(&mut window) {
         if let Some(args) = e.render_args() {
             app.render(&args);
@@ -256,6 +259,13 @@ fn main() {
 
         if let Some(args) = e.update_args() {
             app.update(&args);
+
+            update_counts += 1;
+            if Instant::now().duration_since(started_at).as_millis() >= 1_000 {
+                println!("Updates per second: {}", update_counts);
+                started_at = Instant::now();
+                update_counts = 0;
+            }
         }
     }
 }
