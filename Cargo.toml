@@ -16,4 +16,5 @@ piston2d-opengl_graphics = "0.81.0"
 rand = "0.8.5"
 ndarray = "0.15.4"
 num = "0.4.0"
+rayon = "1.5.3"
 
