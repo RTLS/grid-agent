@@ -20,7 +20,7 @@ use rand::{
 const WIDTH: f64 = 1000.0;
 const HEIGHT: f64 = 1000.0;
 
-const UPDATES_PER_SECOND: u64 = 16;
+const UPDATES_PER_SECOND: u64 = 256;
 const MAX_SPEED: bool = false;
 
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
@@ -174,12 +174,16 @@ impl App {
     }
 
     fn step_agent(&mut self) {
+        // Stepping has an energy cost
+        self.agent.energy -= AGENT_STEP_ENERGY_COST;
+
+        // Choose random direction
         let mut rng = rand::thread_rng();
         let direction: Direction = rng.gen();
         let new_position = Position::increment(&self.agent.position, direction);
+
         if self.valid_position(&new_position) {
             self.agent.position = new_position;
-            self.agent.energy -= AGENT_STEP_ENERGY_COST;
         } else if self.food_at_position(&new_position) {
             let index = self.food.iter()
                 .position(|f| f.position.x == new_position.x && f.position.y == new_position.y)
