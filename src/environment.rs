@@ -1,4 +1,4 @@
-use std::vec::Vec;
+use std::collections::HashMap;
 use rand::{
     distributions::{Distribution, Standard},
     Rng
@@ -12,14 +12,19 @@ const FOOD_ENERGY: u32 = 100;
 pub struct State {
     pub grid: Grid,
     pub agent: Agent,
-    pub food: Vec<Food>,
+    pub food: HashMap<Position, Food>,
 }
 
 impl State {
     pub fn new(rows: u32, cols: u32) -> State {
-        let mut state = State { grid: Grid{rows, cols}, agent: Agent::new(), food: Vec::new()};
-        state.generate_initial_food();
-        state
+        let grid = Grid{rows, cols};
+        let food = State::generate_initial_food(&grid);
+
+        State {
+            grid: grid,
+            agent: Agent::new(),
+            food: food,
+        }
     }
 
     pub fn update(&mut self) {
@@ -43,14 +48,14 @@ impl State {
 
         if self.valid_position(&new_position) {
             self.agent.position = new_position;
-        } else if self.food_at_position(&new_position) {
-            let index = self.food.iter()
-                .position(|f| f.position.x == new_position.x && f.position.y == new_position.y)
-                .unwrap();
-
-            let food = self.food.swap_remove(index);
-            self.agent.eat_food(&food);
-            self.agent.position = new_position;
+        } else {
+            match self.food.remove(&new_position) {
+                Some(food) => {
+                    self.agent.eat_food(&food);
+                    self.agent.position = new_position;
+                },
+                _ => (),
+            }
         }
     }
 
@@ -69,26 +74,33 @@ impl State {
     }
 
     fn food_at_position(&self, position: &Position) -> bool {
-        self.food.iter().any(|f| f.position.x == position.x && f.position.y == position.y)
+        self.food.contains_key(position)
     }
 
-    fn generate_initial_food(&mut self) {
-       self.food = Vec::with_capacity(INITIAL_FOOD_COUNT as usize);
-       let mut food_count: u32 = 0;
+    fn generate_initial_food(grid: &Grid) -> HashMap<Position, Food> {
+       let mut food = HashMap::new();
 
-       while food_count < INITIAL_FOOD_COUNT {
-           let food = Food::new_in(&self.grid);
-           if self.valid_position(&food.position) {
-                self.food.push(food);
-                food_count += 1;
-           }
+       for _ in 0..INITIAL_FOOD_COUNT {
+           let position = grid.rand_position();
+           food.entry(position).or_insert(Food::new());
        }
+
+       return food;
     }
 }
 
 pub struct Grid {
     rows: u32,
     cols: u32,
+}
+
+impl Grid {
+    fn rand_position(&self) -> Position {
+        let mut rng = rand::thread_rng();
+        let x = rng.gen_range(0..self.cols) as i32;
+        let y = rng.gen_range(0..self.rows) as i32;
+        Position{x, y}
+    }
 }
 
 pub enum Direction {
@@ -117,6 +129,7 @@ impl Distribution<Direction> for Standard {
     }
 }
 
+#[derive(Eq, Hash, PartialEq)]
 pub struct Position {
     pub x: i32,
     pub y: i32,
@@ -166,16 +179,11 @@ impl Agent {
 }
 
 pub struct Food {
-    pub position: Position,
     pub energy: u32,
 }
 
 impl Food {
-    fn new_in(grid: &Grid) -> Food {
-        let mut rng = rand::thread_rng();
-        let x = rng.gen_range(0..grid.cols) as i32;
-        let y = rng.gen_range(0..grid.rows) as i32;
-
-        Food{position: Position{x, y}, energy: FOOD_ENERGY}
+    fn new() -> Food {
+        Food{energy: FOOD_ENERGY}
     }
 }

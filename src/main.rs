@@ -57,10 +57,10 @@ impl App {
             rectangle(ENGLISH_VERMILLION, square, c.transform.trans(x, y), gl);
 
             // Food
-            for food in food {
+            for (position, _food) in food {
                 let square = rectangle::square(0.0, 0.0, self.grid.units);
-                let x = food.position.x as f64 * self.grid.units;
-                let y = food.position.y as f64 * self.grid.units;
+                let x = position.x as f64 * self.grid.units;
+                let y = position.y as f64 * self.grid.units;
                 rectangle(FERN_GREEN, square, c.transform.trans(x, y), gl);
             }
         });
