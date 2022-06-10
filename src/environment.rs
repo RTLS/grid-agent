@@ -49,11 +49,8 @@ impl State {
         }
 
         // If food is at that location, eat it
-        match self.food.remove(&new_position) {
-            Some(food) => {
-                self.agent.eat_food(&food);
-            },
-            _ => (),
+        if let Some(food) = self.food.remove(&new_position) {
+            self.agent.eat_food(&food);
         }
 
         self.agent.maybe_die();
