@@ -1,13 +1,14 @@
 use crate::environment::{State, Position, Direction, Food};
 use ndarray::{arr1, Array1};
+use rand::Rng;
 
 const AGENT_STEP_ENERGY_COST: u32 = 1;
 const AGENT_MAX_ENERGY: u32 = 100;
 
 pub struct Agent {
     pub position: Position,
-    pub energy: u32,
-    pub alive: bool,
+    energy: u32,
+    alive: bool,
 }
 
 pub type Input = Array1<f32>;
@@ -25,12 +26,14 @@ impl Agent {
         }
     }
 
-    pub fn should_die(&self) -> bool {
-        self.energy <= 0
+    pub fn alive(&self) -> bool {
+        self.alive
     }
 
-    pub fn die(&mut self) {
-        self.alive = false;
+    pub fn maybe_die(&mut self) {
+        if self.should_die() {
+            self.die()
+        }
     }
 
     pub fn eat_food(&mut self, food: &Food) {
@@ -47,6 +50,16 @@ impl Agent {
     }
 
     pub fn preferred_action(agent: &Agent, input: &Input) -> AgentAction {
-        AgentAction::Step(Direction::Right)
+        // Choose random direction
+        let mut rng = rand::thread_rng();
+        AgentAction::Step(rng.gen())
+    }
+
+    fn should_die(&self) -> bool {
+        self.energy <= 0
+    }
+
+    fn die(&mut self) {
+        self.alive = false;
     }
 }

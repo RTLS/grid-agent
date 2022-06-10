@@ -27,7 +27,7 @@ impl State {
     }
 
     pub fn update(&mut self) {
-        if self.agent.alive {
+        if self.agent.alive() {
             self.agent_action();
         }
     }
@@ -56,19 +56,13 @@ impl State {
             _ => (),
         }
 
-        if self.agent.should_die() {
-            self.agent.die();
-        }
+        self.agent.maybe_die();
     }
 
     fn in_bounds(&self, position: &Position) -> bool {
         let rows = self.grid.rows as i32;
         let cols = self.grid.cols as i32;
         position.x >= 0 && position.y >= 0 && position.x < cols && position.y < rows
-    }
-
-    fn food_at_position(&self, position: &Position) -> bool {
-        self.food.contains_key(position)
     }
 
     fn generate_initial_food(grid: &Grid) -> HashMap<Position, Food> {
