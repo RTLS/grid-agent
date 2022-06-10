@@ -23,6 +23,7 @@ const ENGLISH_VERMILLION: [f32; 4] = [211.0/256.0, 62.0/256.0, 67.0/256.0, 1.0];
 const OLD_LAVENDER: [f32; 4] = [102.0/256.0, 99.0/256.0, 112.0/256.0, 1.0];
 const FERN_GREEN : [f32; 4] = [88.0/256.0, 129.0/256.0, 87.0/256.0, 1.0];
 
+mod agent;
 mod environment;
 
 pub struct App {
@@ -85,7 +86,7 @@ fn main() {
     // Create a new game and run it.
     let mut app = App {
         gl: GlGraphics::new(opengl),
-        grid: graphics::grid::Grid{cols: GRID_SIZE, rows: GRID_SIZE, units: 8.0},
+        grid: graphics::grid::Grid{cols: GRID_SIZE, rows: GRID_SIZE, units: 7.8},
         environment: environment::State::new(GRID_SIZE, GRID_SIZE),
     };
 

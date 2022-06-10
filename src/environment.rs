@@ -1,3 +1,4 @@
+use crate::agent::{Agent, AgentAction};
 use std::collections::HashMap;
 use rand::{
     distributions::{Distribution, Standard},
@@ -5,8 +6,6 @@ use rand::{
 };
 
 const INITIAL_FOOD_COUNT: u32 = 10_000;
-const AGENT_STEP_ENERGY_COST: u32 = 1;
-const AGENT_MAX_ENERGY: u32 = 100;
 const FOOD_ENERGY: u32 = 100;
 
 pub struct State {
@@ -29,42 +28,37 @@ impl State {
 
     pub fn update(&mut self) {
         if self.agent.alive {
-            self.step_agent();
+            self.agent_action();
+        }
+    }
 
-            if self.agent.should_die() {
-                self.agent.die();
+    fn agent_action(&mut self) {
+        let sensory_input = Agent::sensory_input(&self.agent, &self);
+        match Agent::preferred_action(&self.agent, &sensory_input) {
+            AgentAction::Step(direction) => {
+                self.step_agent(direction);
             }
         }
     }
 
-    fn step_agent(&mut self) {
-        // Stepping has an energy cost
-        self.agent.energy -= AGENT_STEP_ENERGY_COST;
-
-        // Choose random direction
-        let mut rng = rand::thread_rng();
-        let direction: Direction = rng.gen();
+    fn step_agent(&mut self, direction: Direction) {
         let new_position = Position::increment(&self.agent.position, direction);
 
-        if self.valid_position(&new_position) {
-            self.agent.position = new_position;
-        } else {
-            match self.food.remove(&new_position) {
-                Some(food) => {
-                    self.agent.eat_food(&food);
-                    self.agent.position = new_position;
-                },
-                _ => (),
-            }
+        if self.in_bounds(&new_position) {
+            self.agent.step_to(new_position.clone());
         }
-    }
 
-    fn valid_position(&mut self, position: &Position) -> bool {
-        let in_bounds = self.in_bounds(position);
-        let agent_position = position.x == self.agent.position.x && position.y == self.agent.position.y;
-        let food_at_position = self.food_at_position(position);
+        // If food is at that location, eat it
+        match self.food.remove(&new_position) {
+            Some(food) => {
+                self.agent.eat_food(&food);
+            },
+            _ => (),
+        }
 
-        in_bounds && !agent_position && !food_at_position
+        if self.agent.should_die() {
+            self.agent.die();
+        }
     }
 
     fn in_bounds(&self, position: &Position) -> bool {
@@ -129,7 +123,7 @@ impl Distribution<Direction> for Standard {
     }
 }
 
-#[derive(Eq, Hash, PartialEq)]
+#[derive(Eq, Clone, Debug, Hash, PartialEq)]
 pub struct Position {
     pub x: i32,
     pub y: i32,
@@ -147,34 +141,6 @@ impl Position {
             Direction::DownLeft => { Position{x: position.x - 1, y: position.y + 1} },
             Direction::DownRight => { Position{x: position.x + 1, y: position.y + 1} },
         }
-    }
-}
-
-pub struct Agent {
-    pub position: Position,
-    pub energy: u32,
-    pub alive: bool,
-}
-
-impl Agent {
-    fn new() -> Agent {
-        Agent{
-            position: Position{x: 50, y: 50},
-            energy: AGENT_MAX_ENERGY,
-            alive: true
-        }
-    }
-
-    fn should_die(&self) -> bool {
-        self.energy <= 0
-    }
-
-    fn die(&mut self) {
-        self.alive = false;
-    }
-
-    fn eat_food(&mut self, food: &Food) {
-       self.energy = std::cmp::min(AGENT_MAX_ENERGY, self.energy + food.energy); 
     }
 }
 
