@@ -650,6 +650,7 @@ dependencies = [
  "pistoncore-glutin_window",
  "rand",
  "rayon",
+ "serde",
 ]
 
 [[package]]
