@@ -45,11 +45,11 @@ impl Agent {
         self.energy -= AGENT_STEP_ENERGY_COST;
     }
 
-    pub fn sensory_input(agent: &Agent, environment: &State) -> Input {
+    pub fn sensory_input(_agent: &Agent, _environment: &State) -> Input {
         arr1(&[])
     }
 
-    pub fn preferred_action(agent: &Agent, input: &Input) -> AgentAction {
+    pub fn preferred_action(_agent: &Agent, _input: &Input) -> AgentAction {
         // Choose random direction
         let mut rng = rand::thread_rng();
         AgentAction::Step(rng.gen())
